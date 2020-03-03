@@ -6,7 +6,7 @@ type Chain struct {
 
 type Block struct {
 	Index    int
-	Value    string
+	Value    rune
 	Category string
 	Prev     *Block
 	Next     *Block

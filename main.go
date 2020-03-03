@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	chain2 "github.com/machester4/jane/chain"
 	"net/http"
 
 	"github.com/machester4/jane/pipeline"
@@ -71,4 +72,8 @@ func main() {
 
 	pipe := pipeline.New(&chain, cps, bps)
 	fmt.Println("Pipe", pipe)
+
+	s := "Hola mundo"
+	chain = chain2.New(s)
+	fmt.Println("Chain len", len(chain.Blocks))
 }
