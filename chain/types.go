@@ -1,13 +1,13 @@
 package chain
 
 type Chain struct {
-	blocks []Block
+	Blocks []Block
 }
 
 type Block struct {
-	index    int
-	value    string
-	category string
-	prev     *Block
-	next     *Block
+	Index    int
+	Value    string
+	Category string
+	Prev     *Block
+	Next     *Block
 }

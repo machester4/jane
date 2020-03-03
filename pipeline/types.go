@@ -2,28 +2,28 @@ package pipeline
 
 import "github.com/machester4/jane/chain"
 
+// Alias for bind chain types to local types
+type Chain = chain.Chain
+type Block = chain.Block
+
 // NOTE: delayed pipes run after no-delayed pipes
 
-type Pipe interface {
-	isDelayed() bool
-}
-
 type BlockPipe struct {
-	name    string
-	delayed bool
-	task    func(block *chain.Block)
+	Name    string
+	Delayed bool
+	Task    func(block *Block)
 }
 
 type ChainPipe struct {
-	name    string
-	delayed bool
-	task    func(block *chain.Chain)
+	Name    string
+	Delayed bool
+	Task    func(chain *Chain)
 }
 
-type Pepeline struct {
-	chain *chain.Chain
-	chainPipes []ChainPipe
-	blockPipes []BlockPipe
+type Pipeline struct {
+	chain             *Chain
+	chainPipes        []ChainPipe
+	blockPipes        []BlockPipe
 	chainPipesDelayed []*ChainPipe
 	blockPipesDelayed []*BlockPipe
 }

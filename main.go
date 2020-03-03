@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/machester4/jane/pipeline"
 
 	"github.com/machester4/jane/lib"
 )
@@ -37,6 +38,37 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", home)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// http.HandleFunc("/", home)
+	// log.Fatal(http.ListenAndServe(":8080", nil))
+
+	block := pipeline.Block{
+		Index:    0,
+		Value:    "H",
+		Category: "letter",
+	}
+	chain := pipeline.Chain{
+		Blocks: []pipeline.Block{block},
+	}
+
+	cp := pipeline.ChainPipe{
+		Name:    "Log",
+		Delayed: false,
+		Task: func(chain *pipeline.Chain) {
+			fmt.Println("Chain en task", chain)
+		},
+	}
+
+	bp := pipeline.BlockPipe{
+		Name:    "Log block",
+		Delayed: false,
+		Task: func(block *pipeline.Block) {
+			fmt.Println("Chain en task", chain)
+		},
+	}
+
+	cps := []pipeline.ChainPipe{cp}
+	bps := []pipeline.BlockPipe{bp}
+
+	pipe := pipeline.New(&chain, cps, bps)
+	fmt.Println("Pipe", pipe)
 }
