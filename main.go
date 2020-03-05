@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	chain2 "github.com/machester4/jane/chain"
 	"net/http"
+
+	chain2 "github.com/machester4/jane/chain"
 
 	"github.com/machester4/jane/pipeline"
 
@@ -44,7 +45,7 @@ func main() {
 
 	block := pipeline.Block{
 		Index:    0,
-		Value:    "H",
+		Value:    'h',
 		Category: "letter",
 	}
 	chain := pipeline.Chain{
@@ -73,7 +74,10 @@ func main() {
 	pipe := pipeline.New(&chain, cps, bps)
 	fmt.Println("Pipe", pipe)
 
-	s := "Hola mundo"
+	s := "Holaaaa mundo"
 	chain = chain2.New(s)
+	for _, c := range chain.Blocks {
+		fmt.Printf("block %q\n", c.Value)
+	}
 	fmt.Println("Chain len", len(chain.Blocks))
 }

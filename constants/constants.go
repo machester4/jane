@@ -5,11 +5,12 @@ var InPunctuationMarksEs = []rune{'¿', '¡'}
 var OutPunctuationMarksEs = []rune{'?', '!', '.', ',', ';', ':'}
 
 // Chain block types
-const BLOCK_TYPE_LETTER = "LETTER"
-const BLOCK_TYPE_PUNCT = "PUNCT"
-const BLOCK_TYPE_SPACE = "SPACE"
+const BlockTypeLetter = "LETTER"
+const BlockTypePunct = "PUNCT"
+const BlockTypeSpace = "SPACE"
 
-// Chain block repeat max
-const MAX_REPEAT_LETER = 2
-const MAX_REPEAT_PUNCT = 1
-const MAX_REPEAT_SPACE = 1
+// Chain block repeat max consecutively
+// If the value is 0 the character will not be repeated consecutively
+const MaxRepeatLeter = 1
+const MaxRepeatPunct = 0
+const MaxRepeatSpace = 0
