@@ -1,13 +1,14 @@
 package chain
 
 type Chain struct {
-	Blocks []Block
+	head *Block
+	tail *Block
 }
 
 type Block struct {
 	Index    int
 	Value    rune
 	Category string
-	Prev     *Block
+	Previous *Block
 	Next     *Block
 }

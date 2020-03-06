@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	chain2 "github.com/machester4/jane/chain"
-
 	"github.com/machester4/jane/pipeline"
 
+	"github.com/machester4/jane/chain"
 	"github.com/machester4/jane/lib"
 )
 
@@ -43,15 +42,18 @@ func main() {
 	// http.HandleFunc("/", home)
 	// log.Fatal(http.ListenAndServe(":8080", nil))
 
-	block := pipeline.Block{
-		Index:    0,
-		Value:    'h',
-		Category: "letter",
-	}
-	chain := pipeline.Chain{
-		Blocks: []pipeline.Block{block},
-	}
+	// Creating Chain from text
+	s := "Holaaaa mundo"
+	c := chain.New(s)
 
+	c.Walk(func(b *chain.Block) {
+		fmt.Printf("Block from walk prev: %q\n", b)
+	})
+
+	// Create Pipeline
+	myPipeline := pipeline.New(c)
+
+	// Create chain pipe
 	cp := pipeline.ChainPipe{
 		Name:    "Log",
 		Delayed: false,
@@ -59,25 +61,17 @@ func main() {
 			fmt.Println("Chain en task", chain)
 		},
 	}
+	myPipeline.AddChainPipe(cp)
 
+	// Create block pipe
 	bp := pipeline.BlockPipe{
 		Name:    "Log block",
 		Delayed: false,
 		Task: func(block *pipeline.Block) {
-			fmt.Println("Chain en task", chain)
+			fmt.Println("Chain en task", c)
 		},
 	}
+	myPipeline.AddBlockPipe(bp)
 
-	cps := []pipeline.ChainPipe{cp}
-	bps := []pipeline.BlockPipe{bp}
-
-	pipe := pipeline.New(&chain, cps, bps)
-	fmt.Println("Pipe", pipe)
-
-	s := "Holaaaa mundo"
-	chain = chain2.New(s)
-	for _, c := range chain.Blocks {
-		fmt.Printf("block %q\n", c.Value)
-	}
-	fmt.Println("Chain len", len(chain.Blocks))
+	fmt.Println("MyPipeline", myPipeline)
 }

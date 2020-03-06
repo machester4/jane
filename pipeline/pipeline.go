@@ -20,13 +20,18 @@ func getDelayedBP(pipes []BlockPipe) []*BlockPipe {
 	return result
 }
 
-func New(chain *Chain, chainPipes []ChainPipe, blockPipes []BlockPipe) (pipeline Pipeline) {
-	pipeline = Pipeline{
-		chain:             chain,
-		chainPipes:        chainPipes,
-		blockPipes:        blockPipes,
-		chainPipesDelayed: getDelayedCP(chainPipes),
-		blockPipesDelayed: getDelayedBP(blockPipes),
+func (p *Pipeline) AddChainPipe(cp ChainPipe) {
+	p.chainPipes = append(p.chainPipes, cp)
+	p.chainPipesDelayed = getDelayedCP(p.chainPipes)
+}
+
+func (p *Pipeline) AddBlockPipe(bp BlockPipe) {
+	p.blockPipes = append(p.blockPipes, bp)
+	p.blockPipesDelayed = getDelayedBP(p.blockPipes)
+}
+
+func New(chain *Chain) Pipeline {
+	return Pipeline{
+		chain: chain,
 	}
-	return
 }

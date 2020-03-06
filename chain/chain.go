@@ -1,7 +1,7 @@
 package chain
 
 import (
-	"fmt"
+	"errors"
 	"unicode"
 
 	"github.com/machester4/jane/constants"
@@ -39,57 +39,54 @@ func incrementRepeater(repeater *int, current rune, last rune) {
 	}
 }
 
-func createMainChain(text string) Chain {
+func createMainChain(text string) *Chain {
 	var repeater int
 	var last rune
-	var chain Chain
+	var c Chain
 
 	for i, r := range text {
 		category := getCategory(r)
 		incrementRepeater(&repeater, r, last)
 
 		if validateRepeaters(category, repeater) {
-			fmt.Println("repeating", &r)
+			// fmt.Println("repeating", &r)
 			continue
 		}
-
-		block := Block{
-			Index:    i,
-			Value:    r,
-			Category: category,
-			Prev:     nil,
-			Next:     nil,
-		}
-		chain.Blocks = append(chain.Blocks, block)
+		c.addBlock(i, r, category)
 		last = r
 	}
 
-	return chain
+	return &c
 }
 
-func isOutOfRange(index int, dir string, blocks []Block) bool {
-	length := len(blocks)
-	if dir == "prev" {
-		return index < 1
+func (c *Chain) addBlock(index int, value rune, category string) {
+	newBlock := &Block{
+		Index:    index,
+		Value:    value,
+		Category: category,
 	}
-	return index > length
-}
-
-func joinBlocks(chain *Chain) {
-	for i, b := range chain.Blocks {
-		if !isOutOfRange(i, "prev", chain.Blocks) {
-			prev := &chain.Blocks[i-1]
-			b.Prev = prev
-		} else if !isOutOfRange(i, "next", chain.Blocks) {
-			next := &chain.Blocks[i+1]
-			b.Prev = next
-		}
+	if c.head == nil {
+		c.head = newBlock
+	} else {
+		lastBlock := c.tail
+		lastBlock.Next = newBlock
+		newBlock.Previous = c.tail
 	}
+	c.tail = newBlock
 }
 
-func New(text string) (chain Chain) {
-	// TODO: Falta refactoring la main chain asignando los blockes previos y siguientes
-	chain = createMainChain(text)
-	joinBlocks(&chain)
-	return
+func (c *Chain) Walk(callback func(b *Block)) error {
+	currentBlock := c.head
+	if currentBlock == nil {
+		return errors.New("chain is empty")
+	}
+	for currentBlock.Next != nil {
+		callback(currentBlock)
+		currentBlock = currentBlock.Next
+	}
+	return nil
+}
+
+func New(text string) *Chain {
+	return createMainChain(text)
 }
