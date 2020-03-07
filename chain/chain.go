@@ -59,18 +59,23 @@ func createMainChain(text string) *Chain {
 	return &c
 }
 
-func (c *Chain) addBlock(index int, value rune, category string) {
-	newBlock := &Block{
-		Index:    index,
-		Value:    value,
-		Category: category,
+func (c *Chain) addBlock(indexInText int, value rune, category string) {
+	var newBlock *Block
+	var lastBlock *Block
+
+	newBlock = &Block{
+		IndexInText: indexInText,
+		Value:       value,
+		Category:    category,
 	}
+	lastBlock = c.tail
+
 	if c.head == nil {
 		c.head = newBlock
 	} else {
-		lastBlock := c.tail
+		newBlock.IndexInChain = lastBlock.IndexInChain + 1
+		newBlock.Previous = lastBlock
 		lastBlock.Next = newBlock
-		newBlock.Previous = c.tail
 	}
 	c.tail = newBlock
 }
@@ -80,11 +85,46 @@ func (c *Chain) Walk(callback func(b *Block)) error {
 	if currentBlock == nil {
 		return errors.New("chain is empty")
 	}
-	for currentBlock.Next != nil {
+
+	for currentBlock.Next != nil || currentBlock.Previous != nil {
 		callback(currentBlock)
-		currentBlock = currentBlock.Next
+		if currentBlock.Next != nil {
+			currentBlock = currentBlock.Next
+		} else {
+			break
+		}
 	}
 	return nil
+}
+
+func (c *Chain) GetAllBlocks() (blocks []*Block) {
+	c.Walk(func(b *Block) {
+		blocks = append(blocks, b)
+	})
+	return
+}
+
+func (c *Chain) GetWords() (words []Word) {
+	var currentWord Word
+
+	c.Walk(func(b *Block) {
+		if currentWord.Value == "" {
+			currentWord.Start = b.IndexInText
+		}
+
+		currentWord.Length = b.IndexInText
+		currentWord.Value += string(b.Value)
+
+		if b.Category == constants.BlockTypeSpace {
+			words = append(words, currentWord)
+			currentWord.Value = ""
+		}
+	})
+	// Append last word
+	if currentWord.Value != "" {
+		words = append(words, currentWord)
+	}
+	return
 }
 
 func New(text string) *Chain {

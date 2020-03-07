@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/machester4/jane/recommender"
+
 	"github.com/machester4/jane/pipeline"
 
 	"github.com/machester4/jane/chain"
@@ -43,12 +45,19 @@ func main() {
 	// log.Fatal(http.ListenAndServe(":8080", nil))
 
 	// Creating Chain from text
-	s := "Holaaaa mundo"
+	s := "Holaaaa mundo xD"
 	c := chain.New(s)
 
 	c.Walk(func(b *chain.Block) {
-		fmt.Printf("Block from walk prev: %q\n", b)
+		fmt.Printf("Block from walk: %q\n ", b.Value)
 	})
+
+	// fmt.Println("Get all blocks", len(c.GetAllBlocks()))
+	//fmt.Println("Get all words", c.GetWords())
+
+	var contexts = []string{"ch"}
+	recommendations := recommender.New(c, "es", contexts)
+	fmt.Printf("recommendations %q", recommendations)
 
 	// Create Pipeline
 	myPipeline := pipeline.New(c)

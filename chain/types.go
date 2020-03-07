@@ -6,9 +6,17 @@ type Chain struct {
 }
 
 type Block struct {
-	Index    int
-	Value    rune
-	Category string
-	Previous *Block
-	Next     *Block
+	IndexInChain int
+	IndexInText  int
+	Value        rune
+	Category     string
+	Previous     *Block
+	Next         *Block
+}
+
+type Word struct {
+	Start           int
+	Length          int
+	Value           string
+	recommendations []string
 }
