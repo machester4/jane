@@ -14,3 +14,8 @@ const BlockTypeSpace = "SPACE"
 const MaxRepeatLeter = 1
 const MaxRepeatPunct = 0
 const MaxRepeatSpace = 0
+
+// Pipeline
+const PipeTypeChain = "PIPE_CHAIN"
+const PipeTypeBlock = "PIPE_BLOCK"
+const PipeTypeWord = "PIPE_WORD"

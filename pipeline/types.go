@@ -1,29 +1,40 @@
 package pipeline
 
-import "github.com/machester4/jane/chain"
+import (
+	"sync"
+
+	"github.com/machester4/jane/chain"
+)
 
 // Alias for bind chain types to local types
 type Chain = chain.Chain
 type Block = chain.Block
+type Word = chain.Word
 
 // NOTE: delayed pipes run after no-delayed pipes
 
-type BlockPipe struct {
-	Name    string
+type PipeChain struct {
 	Delayed bool
-	Task    func(block *Block)
+	Task    func(c Chain)
 }
 
-type ChainPipe struct {
-	Name    string
+type PipeBlock struct {
 	Delayed bool
-	Task    func(chain *Chain)
+	Task    func(b Block)
+}
+
+type PipeWord struct {
+	Delayed bool
+	Task    func(w *Word, wg *sync.WaitGroup)
 }
 
 type Pipeline struct {
+	wg                sync.WaitGroup
 	chain             *Chain
-	chainPipes        []ChainPipe
-	blockPipes        []BlockPipe
-	chainPipesDelayed []*ChainPipe
-	blockPipesDelayed []*BlockPipe
+	chainPipes        []PipeChain
+	blockPipes        []PipeBlock
+	wordPipes         []PipeWord
+	chainPipesDelayed []*PipeChain
+	blockPipesDelayed []*PipeBlock
+	wordPipesDelayed  []*PipeWord
 }

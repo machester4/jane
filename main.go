@@ -7,8 +7,6 @@ import (
 
 	"github.com/machester4/jane/recommender"
 
-	"github.com/machester4/jane/pipeline"
-
 	"github.com/machester4/jane/chain"
 	"github.com/machester4/jane/lib"
 )
@@ -45,42 +43,17 @@ func main() {
 	// log.Fatal(http.ListenAndServe(":8080", nil))
 
 	// Creating Chain from text
-	s := "Holaaaa mundo xD"
+	s := "holaaaa mundo xD?"
 	c := chain.New(s)
 
-	c.Walk(func(b *chain.Block) {
+	/* c.Walk(func(b *chain.Block) {
 		fmt.Printf("Block from walk: %q\n ", b.Value)
-	})
+	}) */
 
 	// fmt.Println("Get all blocks", len(c.GetAllBlocks()))
 	//fmt.Println("Get all words", c.GetWords())
 
 	var contexts = []string{"ch"}
-	recommendations := recommender.New(c, "es", contexts)
-	fmt.Printf("recommendations %q", recommendations)
-
-	// Create Pipeline
-	myPipeline := pipeline.New(c)
-
-	// Create chain pipe
-	cp := pipeline.ChainPipe{
-		Name:    "Log",
-		Delayed: false,
-		Task: func(chain *pipeline.Chain) {
-			fmt.Println("Chain en task", chain)
-		},
-	}
-	myPipeline.AddChainPipe(cp)
-
-	// Create block pipe
-	bp := pipeline.BlockPipe{
-		Name:    "Log block",
-		Delayed: false,
-		Task: func(block *pipeline.Block) {
-			fmt.Println("Chain en task", c)
-		},
-	}
-	myPipeline.AddBlockPipe(bp)
-
-	fmt.Println("MyPipeline", myPipeline)
+	recommendations := recommender.Recommend(c, "es", contexts)
+	fmt.Printf("recommendations %q\n", recommendations[0].Recommendations)
 }

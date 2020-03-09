@@ -17,6 +17,6 @@ type Block struct {
 type Word struct {
 	Start           int
 	Length          int
-	Value           string
-	recommendations []string
+	Value           []*Block
+	Recommendations [3]string
 }

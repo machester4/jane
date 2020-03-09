@@ -48,7 +48,7 @@ func createMainChain(text string) *Chain {
 		category := getCategory(r)
 		incrementRepeater(&repeater, r, last)
 
-		if validateRepeaters(category, repeater) {
+		if validateRepeaters(category, repeater) && category != "" {
 			// fmt.Println("repeating", &r)
 			continue
 		}
@@ -108,23 +108,35 @@ func (c *Chain) GetWords() (words []Word) {
 	var currentWord Word
 
 	c.Walk(func(b *Block) {
-		if currentWord.Value == "" {
+		if b.Category == constants.BlockTypeLetter {
+			currentWord.Value = append(currentWord.Value, b)
 			currentWord.Start = b.IndexInText
+			currentWord.Length = b.IndexInText
 		}
-
-		currentWord.Length = b.IndexInText
-		currentWord.Value += string(b.Value)
 
 		if b.Category == constants.BlockTypeSpace {
 			words = append(words, currentWord)
-			currentWord.Value = ""
+			/* words = append(words, Word{
+				Start:  b.IndexInText,
+				Length: b.IndexInText,
+				Value:  string(b.Value),
+			}) */
+			currentWord.Value = nil
 		}
 	})
 	// Append last word
-	if currentWord.Value != "" {
+	if currentWord.Value != nil {
 		words = append(words, currentWord)
 	}
 	return
+}
+
+func (w *Word) ToString() string {
+	var result string
+	for _, b := range w.Value {
+		result += string(b.Value)
+	}
+	return result
 }
 
 func New(text string) *Chain {
