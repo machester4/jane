@@ -10,12 +10,11 @@ type Word = chain.Word
 
 type Stage struct {
 	Name   string
-	Steps []func(w *Word)
-	Lifo bool
+	Steps []func()
+	Lifo bool // TODO: Implement
 }
 
-type WordPipeline struct {
+type Pipeline struct {
 	wg     sync.WaitGroup
-	Words  []*Word
 	Stages []*Stage
 }

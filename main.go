@@ -8,7 +8,6 @@ import (
 	"github.com/machester4/jane/recommender"
 
 	"github.com/machester4/jane/chain"
-	"github.com/machester4/jane/lib"
 )
 
 type Body struct {
@@ -30,7 +29,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusOK)
 		fmt.Println(b.text)
-		lib.Suggest("!hola ?. estas ahi", "chivito", "es")
+		// lib.Suggest("!hola ?. estas ahi", "chivito", "es")
 		w.Write([]byte(`{"message": "get called"}`))
 	default:
 		w.WriteHeader(http.StatusNotFound)

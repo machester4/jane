@@ -8,4 +8,4 @@ import (
 type Chain = chain.Chain
 type Word = chain.Word
 type Stage = pipeline.Stage
-type WordPipeline = pipeline.WordPipeline
+type Pipeline = pipeline.Pipeline

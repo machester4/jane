@@ -1,48 +1,45 @@
 package pipeline
 
-import "fmt"
+import (
+	"fmt"
+)
 
-func (p *WordPipeline) logDone(stgName string) {
+func (s *Stage) logDone(stgName string) {
 	fmt.Printf("Stage %q done all steps!\n", stgName)
 }
 
-func (s *Stage) logDone(sIndex int) {
+func (s *Stage) logStepDone(sIndex int) {
 	fmt.Printf("[%q]: Step -> %d Done!\n", s.Name, sIndex)
 }
 
-func (s *Stage) run(word *Word) {
-	for i, step := range s.Steps {
-		step(word)
-		s.logDone(i)
-	}
-	// Done all Steps of Stage, stage done
-}
-
-func (p *WordPipeline) runnerSync() {
-	for _, word := range p.Words {
-		for _, stage := range p.Stages {
-			stage.run(word)
-			p.logDone(stage.Name)
+func (p *Pipeline) runnerSync() {
+	for _, stage := range p.Stages {
+		for i, step := range stage.Steps {
+			step()
+			stage.logStepDone(i)
 		}
+		stage.logDone(stage.Name)
 	}
 }
 
-func (p *WordPipeline) runnerAsync()  {
-	p.wg.Add(len(p.Words) * len(p.Stages))
-
-	for _, word := range p.Words {
-		for _, stage := range p.Stages {
+func (p *Pipeline) runnerAsync()  {
+	for _, stage := range p.Stages {
+		// Wait current stage run all step in parallel
+		p.wg.Add(len(stage.Steps))
+		for i, step := range stage.Steps {
 			go (func() {
-				defer p.wg.Done()
-				stage.run(word)
-				p.logDone(stage.Name)
+				step()
+				stage.logStepDone(i)
+				p.wg.Done()
 			})()
 		}
+		p.wg.Wait()
+		stage.logDone(stage.Name)
 	}
-	p.wg.Wait()
 }
 
-func (p *WordPipeline) Start(sync bool) {
+// Run all stages sync mode
+func (p *Pipeline) Start(sync bool) {
 	if sync {
 		p.runnerSync()
 	} else {
