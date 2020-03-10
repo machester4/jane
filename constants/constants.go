@@ -16,6 +16,5 @@ const MaxRepeatPunct = 0
 const MaxRepeatSpace = 0
 
 // Pipeline
-const PipeTypeChain = "PIPE_CHAIN"
-const PipeTypeBlock = "PIPE_BLOCK"
-const PipeTypeWord = "PIPE_WORD"
+const PipelineTypeChain = "PIPE_CHAIN"
+const PipelineTypeWord = "PIPE_WORD"
