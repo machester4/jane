@@ -104,8 +104,8 @@ func (c *Chain) GetAllBlocks() (blocks []*Block) {
 	return
 }
 
-func (c *Chain) GetWords() (words []Word) {
-	var currentWord Word
+func (c *Chain) GetWords() (words []*Word) {
+	currentWord := new(Word)
 
 	c.Walk(func(b *Block) {
 		if b.Category == constants.BlockTypeLetter {
@@ -116,12 +116,7 @@ func (c *Chain) GetWords() (words []Word) {
 
 		if b.Category == constants.BlockTypeSpace {
 			words = append(words, currentWord)
-			/* words = append(words, Word{
-				Start:  b.IndexInText,
-				Length: b.IndexInText,
-				Value:  string(b.Value),
-			}) */
-			currentWord.Value = nil
+			currentWord = new(Word)
 		}
 	})
 	// Append last word

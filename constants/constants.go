@@ -15,6 +15,6 @@ const MaxRepeatLeter = 1
 const MaxRepeatPunct = 0
 const MaxRepeatSpace = 0
 
-// Pipeline
-const PipelineTypeChain = "PIPE_CHAIN"
-const PipelineTypeWord = "PIPE_WORD"
+// Recommend
+const MaxDistance = 3
+const MaxResults = 3

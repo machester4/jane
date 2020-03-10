@@ -2,31 +2,50 @@ package pipeline
 
 import "fmt"
 
-func (p *WordPipeline) logAndDone(stgName string) {
-	fmt.Println("Done Stage ->", stgName)
-	p.wg.Done()
+func (p *WordPipeline) logDone(stgName string) {
+	fmt.Printf("Stage %q done all steps!\n", stgName)
 }
 
-func (p *WordPipeline) runner(sync bool) {
-	if sync {
-		for _, stage := range *p.Stages {
-			(func() {
-				stage.Worker(p.Words)
-				defer p.logAndDone(stage.Name)
-			})()
-		}
-	} else {
-		for _, stage := range *p.Stages {
-			go (func() {
-				stage.Worker(p.Words)
-				defer p.logAndDone(stage.Name)
-			})()
+func (s *Stage) logDone(sIndex int) {
+	fmt.Printf("[%q]: Step -> %d Done!\n", s.Name, sIndex)
+}
+
+func (s *Stage) run(word *Word) {
+	for i, step := range s.Steps {
+		step(word)
+		s.logDone(i)
+	}
+	// Done all Steps of Stage, stage done
+}
+
+func (p *WordPipeline) runnerSync() {
+	for _, word := range p.Words {
+		for _, stage := range p.Stages {
+			stage.run(word)
+			p.logDone(stage.Name)
 		}
 	}
 }
 
-func (p *WordPipeline) Start() {
-	p.wg.Add(len(*p.Stages))
-	p.runner(false)
+func (p *WordPipeline) runnerAsync()  {
+	p.wg.Add(len(p.Words) * len(p.Stages))
+
+	for _, word := range p.Words {
+		for _, stage := range p.Stages {
+			go (func() {
+				defer p.wg.Done()
+				stage.run(word)
+				p.logDone(stage.Name)
+			})()
+		}
+	}
 	p.wg.Wait()
+}
+
+func (p *WordPipeline) Start(sync bool) {
+	if sync {
+		p.runnerSync()
+	} else {
+		p.runnerAsync()
+	}
 }

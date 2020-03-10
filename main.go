@@ -55,5 +55,7 @@ func main() {
 
 	var contexts = []string{"ch"}
 	recommendations := recommender.Recommend(c, "es", contexts)
-	fmt.Printf("recommendations %q\n", recommendations[0].Recommendations)
+	for _, rec := range recommendations {
+		fmt.Printf("recommendations %q\n", rec.Recommendations)
+	}
 }
