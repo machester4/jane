@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"sync"
 )
 
 func (s *Stage) logDone(stgName string) {
@@ -22,16 +23,18 @@ func (p *Pipeline) runnerSync() {
 	}
 }
 
+func (s *Stage) wrapRoutine(wg *sync.WaitGroup, index int)  {
+	defer wg.Done()
+	s.Steps[index]()
+	s.logStepDone(index)
+}
+
 func (p *Pipeline) runnerAsync()  {
 	for _, stage := range p.Stages {
 		// Wait current stage run all step in parallel
 		p.wg.Add(len(stage.Steps))
-		for i, step := range stage.Steps {
-			go (func() {
-				step()
-				stage.logStepDone(i)
-				p.wg.Done()
-			})()
+		for i, _ := range stage.Steps {
+			go stage.wrapRoutine(&p.wg, i)
 		}
 		p.wg.Wait()
 		stage.logDone(stage.Name)

@@ -1,9 +1,15 @@
 package recommender
 
+import (
+	"fmt"
+	"github.com/agnivade/levenshtein"
+)
+
 func addRecommends(word *Word) func()  {
 	return func() {
-		// levenshtein.ComputeDistance(word.ToString(), "word en dic")
-		word.Recommendations = [3]string{word.ToString(),"c"}
+		distance := levenshtein.ComputeDistance(word.ToString(), "hol")
+		fmt.Printf("distance %d - %s\n", distance, word.ToString())
+		word.Recommendations = [3]string{word.ToString(), string(distance)}
 	}
 }
 
