@@ -1,17 +1,18 @@
 package constants
 
-// ES
+// Spanish only
 var InPunctuationMarksEs = []rune{'¿', '¡'}
 var OutPunctuationMarksEs = []rune{'?', '!', '.', ',', ';', ':'}
+var Articles = []string{"el", "la", "los", "las", "un", "uno", "una", "unos", "unas", "lo"}
 
-// Chain block types
-const BlockTypeLetter = "LETTER"
-const BlockTypePunct = "PUNCT"
-const BlockTypeSpace = "SPACE"
+// Chain fields types
+const FieldTypeLetter = "LETTER"
+const FieldTypePunct = "PUNCT"
+const FieldTypeSpace = "SPACE"
 
-// Chain block repeat max consecutively
+// Field character repeat max consecutively
 // If the value is 0 the character will not be repeated consecutively
-const MaxRepeatLeter = 1
+const MaxRepeatLetter = 1
 const MaxRepeatPunct = 0
 const MaxRepeatSpace = 0
 

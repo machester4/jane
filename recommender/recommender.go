@@ -2,22 +2,23 @@ package recommender
 
 import (
 	"fmt"
+
 	"github.com/agnivade/levenshtein"
 )
 
-func addRecommends(word *Word) func()  {
+func addRecommends(word *Word) func() {
 	return func() {
-		distance := levenshtein.ComputeDistance(word.ToString(), "hol")
-		fmt.Printf("distance %d - %s\n", distance, word.ToString())
-		word.Recommendations = [3]string{word.ToString(), string(distance)}
+		distance := levenshtein.ComputeDistance(word.Value, "hol")
+		fmt.Printf("distance %d - %s\n", distance, word.Value)
+		word.Recommends = [3]string{word.Value, string(distance)}
 	}
 }
 
 // Contexts are dictionaries with the respective words.
 // have higher priority than the words of the language itself
-func Recommend(chain *Chain, lang string, contexts []string) []*Word {
+func Recommend(chain *Chain, lang string, contexts []string) {
 	// wordsDict := helpers.GetDictionary("chivito")
-	words := chain.GetWords()
+	words := chain.Words
 	var steps []func()
 
 	for _, word := range words {
@@ -26,12 +27,18 @@ func Recommend(chain *Chain, lang string, contexts []string) []*Word {
 
 	stages := []*Stage{
 		{
-			Name: "Add Recommends",
+			Name:  "Add words recommends",
+			Steps: steps,
+		},
+		{
+			Name:  "Add articles recommends",
+			Steps: steps,
+		},
+		{
+			Name:  "Add punct recommends",
 			Steps: steps,
 		},
 	}
 	pipeline := Pipeline{Stages: stages}
 	pipeline.Start(false)
-
-	return words
 }
