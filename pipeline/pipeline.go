@@ -23,13 +23,13 @@ func (p *Pipeline) runnerSync() {
 	}
 }
 
-func (s *Stage) wrapRoutine(wg *sync.WaitGroup, index int)  {
+func (s *Stage) wrapRoutine(wg *sync.WaitGroup, index int) {
 	defer wg.Done()
 	s.Steps[index]()
 	s.logStepDone(index)
 }
 
-func (p *Pipeline) runnerAsync()  {
+func (p *Pipeline) runnerAsync() {
 	for _, stage := range p.Stages {
 		// Wait current stage run all step in parallel
 		p.wg.Add(len(stage.Steps))
@@ -41,7 +41,8 @@ func (p *Pipeline) runnerAsync()  {
 	}
 }
 
-// Run all stages sync mode
+// Stages are executed synchronously,
+// and steps are executed depending on the value of the sync variable
 func (p *Pipeline) Start(sync bool) {
 	if sync {
 		p.runnerSync()

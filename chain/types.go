@@ -2,18 +2,18 @@ package chain
 
 type field struct {
 	Start      int
-	Length     int
+	Offset     int
 	Value      string
-	Recommends [3]string
+	Recommends []string
 }
 type Word = field
 type Punct = field
 type Article struct {
 	Start      int
-	Length     int
+	Offset     int
 	Value      string
 	Noun       *Word
-	Recommends [3]string
+	Recommends []string
 }
 type Chain struct {
 	Words       []*Word

@@ -1,28 +1,38 @@
 package recommender
 
 import (
-	"fmt"
+	"github.com/machester4/jane/constants"
+
+	"github.com/machester4/jane/helpers"
 
 	"github.com/agnivade/levenshtein"
 )
 
-func addRecommends(word *Word) func() {
+func addRecommends(word *Word, dicWords []string) func() {
 	return func() {
-		distance := levenshtein.ComputeDistance(word.Value, "hol")
-		fmt.Printf("distance %d - %s\n", distance, word.Value)
-		word.Recommends = [3]string{word.Value, string(distance)}
+		for _, wd := range dicWords {
+			distance := levenshtein.ComputeDistance(word.Value, wd)
+			if wd == word.Value {
+				word.Recommends = []string{}
+				break
+			}
+			if distance < constants.MaxDistance {
+				// fmt.Printf("distance %d - %s\n", distance, wd)
+				word.Recommends = append(word.Recommends, wd)
+			}
+		}
 	}
 }
 
 // Contexts are dictionaries with the respective words.
 // have higher priority than the words of the language itself
 func Recommend(chain *Chain, lang string, contexts []string) {
-	// wordsDict := helpers.GetDictionary("chivito")
+	wordsDict := helpers.GetDictionary(lang)
 	words := chain.Words
 	var steps []func()
 
 	for _, word := range words {
-		steps = append(steps, addRecommends(word))
+		steps = append(steps, addRecommends(word, wordsDict))
 	}
 
 	stages := []*Stage{
@@ -32,11 +42,11 @@ func Recommend(chain *Chain, lang string, contexts []string) {
 		},
 		{
 			Name:  "Add articles recommends",
-			Steps: steps,
+			Steps: nil,
 		},
 		{
 			Name:  "Add punct recommends",
-			Steps: steps,
+			Steps: nil,
 		},
 	}
 	pipeline := Pipeline{Stages: stages}

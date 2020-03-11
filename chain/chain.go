@@ -38,10 +38,10 @@ func incrementRepeater(repeater *int, current rune, last rune) {
 	}
 }
 
-func (c *Chain) add(value string, index int, category string) {
+func (c *Chain) add(value string, offset int, category string) {
 	field := field{
-		Start:  index,
-		Length: index + len(value),
+		Start:  offset - len(value),
+		Offset: offset,
 		Value:  value,
 	}
 
@@ -57,7 +57,7 @@ func (c *Chain) add(value string, index int, category string) {
 		if isArticle {
 			art := Article{
 				Start:  field.Start,
-				Length: field.Length,
+				Offset: field.Offset,
 				Value:  field.Value,
 			}
 			c.Articles = append(c.Articles, &art)
@@ -87,15 +87,22 @@ func New(text string) *Chain {
 		if isRepeatedCharacter(category, repeater) || category == "" {
 			continue
 		}
-
-		if category == constants.FieldTypeSpace || category == constants.FieldTypePunct {
-			chain.add(field, i-1, getCategory(last))
+		switch category {
+		case constants.FieldTypeSpace:
+			chain.add(field, i, getCategory(last))
+			field = ""
+		case constants.FieldTypePunct:
 			chain.add(string(r), i, category)
 			field = ""
-		} else {
+		default:
 			field += string(r)
 		}
 		last = r
+	}
+
+	// Add last field
+	if field != "" {
+		chain.add(field, len(text), getCategory(last))
 	}
 
 	return &chain
