@@ -42,7 +42,7 @@ func main() {
 	// log.Fatal(http.ListenAndServe(":8080", nil))
 
 	// Creating Chain from text
-	s := "pan con confiansa"
+	s := "pan con confiansa?"
 	c := chain.New(s)
 
 	/* c.Walk(func(b *chain.Block) {
@@ -55,7 +55,7 @@ func main() {
 	var contexts = []string{"ch"}
 	recommender.Recommend(c, "es-50", contexts)
 	for _, word := range c.Words {
-		fmt.Printf("recommendations Words %s %q %d\n", word.Value, word.Recommends, word.Start)
+		fmt.Printf("recommendations Words %s %q %d\n", word.Value, word.Recommends, word.Offset)
 	}
 
 	/* for _, punct := range c.Pucts {

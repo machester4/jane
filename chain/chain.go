@@ -89,10 +89,13 @@ func New(text string) *Chain {
 		}
 		switch category {
 		case constants.FieldTypeSpace:
-			chain.add(field, i, getCategory(last))
+			chain.add(field, i-1, getCategory(last))
 			field = ""
 		case constants.FieldTypePunct:
 			chain.add(string(r), i, category)
+			if getCategory(last) == constants.FieldTypeSpace {
+				chain.add(field, i-1, getCategory(last))
+			}
 			field = ""
 		default:
 			field += string(r)
