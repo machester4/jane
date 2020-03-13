@@ -2,63 +2,43 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"net/http"
-
-	"github.com/machester4/jane/recommender"
-
 	"github.com/machester4/jane/chain"
+	"github.com/machester4/jane/helpers"
+	"github.com/machester4/jane/recommender"
+	"log"
+	"net/http"
 )
 
 type Body struct {
-	text  string
-	dict  string
-	rules string
+	Text  string
+	Dict  string
+	Contexts []string
 }
 
-func home(w http.ResponseWriter, r *http.Request) {
+func draft(w http.ResponseWriter, r *http.Request) {
+	// Body struct
+	b := Body{}
+
+	// Parse JSON request body
+	err := json.NewDecoder(r.Body).Decode(&b)
+	helpers.CheckError(err)
+
+	// Marshal or convert recommend object to json and write to response
+	c := chain.New(b.Text)
+	recommender.Recommend(c, b.Dict, b.Contexts)
+	respJson, err := json.Marshal(c)
+	helpers.CheckError(err)
+
+	// Set Content-Type header
 	w.Header().Set("Content-Type", "application/json")
-	switch r.Method {
-	case "GET":
-		var b Body
-		err := json.NewDecoder(r.Body).Decode(&b)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(`{"error": "invalid params"}`))
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Println(b.text)
-		// lib.Suggest("!hola ?. estas ahi", "chivito", "es")
-		w.Write([]byte(`{"message": "get called"}`))
-	default:
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message": "not found"}`))
-	}
+	w.WriteHeader(http.StatusOK)
+
+	// Wrote JSON response
+	w.Write(respJson)
 }
 
 func main() {
-	// http.HandleFunc("/", home)
-	// log.Fatal(http.ListenAndServe(":8080", nil))
-
-	// Creating Chain from text
-	s := "pan con confiansa?"
-	c := chain.New(s)
-
-	/* c.Walk(func(b *chain.Block) {
-		fmt.Printf("Block from walk: %q\n ", b.Value)
-	}) */
-
-	// fmt.Println("Get all blocks", len(c.GetAllBlocks()))
-	//fmt.Println("Get all words", c.GetWords())
-
-	var contexts = []string{"ch"}
-	recommender.Recommend(c, "es-50", contexts)
-	for _, word := range c.Words {
-		fmt.Printf("recommendations Words %s %q %d\n", word.Value, word.Recommends, word.Offset)
-	}
-
-	/* for _, punct := range c.Pucts {
-		fmt.Printf("recommendations Pucts %q\n", punct.Value)
-	} */
+	// Basic server ONLY for test
+	http.HandleFunc("/", draft)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
