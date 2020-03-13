@@ -33,7 +33,7 @@ func draft(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	// Wrote JSON response
+	// Write JSON response
 	w.Write(respJson)
 }
 
