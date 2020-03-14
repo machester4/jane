@@ -7,6 +7,7 @@ import (
 	"github.com/machester4/jane/recommender"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Body struct {
@@ -40,5 +41,5 @@ func draft(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Basic server ONLY for test
 	http.HandleFunc("/", draft)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), nil))
 }
