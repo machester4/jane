@@ -41,5 +41,5 @@ func draft(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Basic server ONLY for test
 	http.HandleFunc("/", draft)
-	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), nil))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
