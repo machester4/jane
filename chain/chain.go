@@ -1,34 +1,10 @@
 package chain
 
 import (
-	"unicode"
+	"github.com/machester4/jane/helpers"
 
 	"github.com/machester4/jane/constants"
 )
-
-func isRepeatedCharacter(category string, repeater int) (isRepeated bool) {
-	switch category {
-	case constants.FieldTypeLetter:
-		isRepeated = repeater > constants.MaxRepeatLetter
-	case constants.FieldTypePunct:
-		isRepeated = repeater > constants.MaxRepeatPunct
-	case constants.FieldTypeSpace:
-		isRepeated = repeater > constants.MaxRepeatSpace
-	}
-	return
-}
-
-func getCategory(r rune) (category string) {
-	switch {
-	case unicode.IsLetter(r):
-		category = constants.FieldTypeLetter
-	case unicode.IsPunct(r):
-		category = constants.FieldTypePunct
-	case unicode.IsSpace(r):
-		category = constants.FieldTypeSpace
-	}
-	return
-}
 
 func incrementRepeater(repeater *int, current rune, last rune) {
 	if last == current {
@@ -38,39 +14,44 @@ func incrementRepeater(repeater *int, current rune, last rune) {
 	}
 }
 
+func (c *Chain) addWord(field *field)  {
+	isArticle := helpers.IsArticle(field.Value)
+	if isArticle {
+		c.addArticle(field)
+	} else {
+		if c.headArticle != nil {
+			c.headArticle.Noun = field
+			c.headArticle = nil
+		}
+		c.Words = append(c.Words, field)
+	}
+}
+
+func (c *Chain) addArticle(field *field)  {
+	art := Article{
+		Start:  field.Start,
+		Offset: field.Offset,
+		Value:  field.Value,
+	}
+	c.Articles = append(c.Articles, &art)
+	c.headArticle = &art
+}
+
+func (c *Chain) addPunct(field *field)  {
+	c.Pucts = append(c.Pucts, field)
+}
+
 func (c *Chain) add(value string, offset int, category string) {
-	field := field{
+	field := &field{
 		Start:  offset - len(value),
 		Offset: offset,
 		Value:  value,
 	}
-
 	switch category {
 	case constants.FieldTypeLetter:
-		var isArticle bool
-		for _, article := range constants.Articles {
-			if article == value {
-				isArticle = true
-				break
-			}
-		}
-		if isArticle {
-			art := Article{
-				Start:  field.Start,
-				Offset: field.Offset,
-				Value:  field.Value,
-			}
-			c.Articles = append(c.Articles, &art)
-			c.headArticle = &art
-		} else {
-			if c.headArticle != nil {
-				c.headArticle.Noun = &field
-				c.headArticle = nil
-			}
-			c.Words = append(c.Words, &field)
-		}
+		c.addWord(field)
 	case constants.FieldTypePunct:
-		c.Pucts = append(c.Pucts, &field)
+		c.addPunct(field)
 	}
 }
 
@@ -81,19 +62,19 @@ func New(text string) *Chain {
 	var field string
 
 	for i, r := range text {
-		category := getCategory(r)
+		category := helpers.GetCharacterCategory(r)
 		incrementRepeater(&repeater, r, last)
 
-		if isRepeatedCharacter(category, repeater) || category == "" {
+		if helpers.IsRepeatedCharacter(category, repeater) || category == "" {
 			continue
 		}
 		switch category {
 		case constants.FieldTypeSpace:
-			chain.add(field, i-1, getCategory(last))
+			chain.add(field, i-1, helpers.GetCharacterCategory(last))
 			field = ""
 		case constants.FieldTypePunct:
 			chain.add(string(r), i, category)
-			chain.add(field, i-1, getCategory(last))
+			chain.add(field, i-1, helpers.GetCharacterCategory(last))
 			field = ""
 		default:
 			field += string(r)
@@ -103,7 +84,7 @@ func New(text string) *Chain {
 
 	// Add last field
 	if field != "" {
-		chain.add(field, len(text), getCategory(last))
+		chain.add(field, len(text), helpers.GetCharacterCategory(last))
 	}
 
 	return &chain

@@ -27,8 +27,8 @@ func addRecommends(word *Word, dicWords []string) func() {
 // Contexts are dictionaries with the respective words.
 // have higher priority than the words of the language itself
 func Recommend(chain *Chain, lang string, contexts []string) {
-	wordsDict := helpers.GetDictionary(lang)
 	words := chain.Words
+	wordsDict := helpers.GetDictionary(lang)
 	var steps []func()
 
 	for _, word := range words {
