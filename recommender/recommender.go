@@ -1,12 +1,21 @@
 package recommender
 
 import (
+	"fmt"
+	"github.com/machester4/jane/bktree"
 	"github.com/machester4/jane/constants"
-
 	"github.com/machester4/jane/helpers"
 
 	"github.com/agnivade/levenshtein"
 )
+
+type word string
+func (x word) Distance(e bktree.Entry) int {
+	a := string(x)
+	b := string(e.(word))
+
+	return levenshtein.ComputeDistance(a, b)
+}
 
 func addRecommends(word *Word, dicWords []string) func() {
 	return func() {
@@ -24,15 +33,29 @@ func addRecommends(word *Word, dicWords []string) func() {
 	}
 }
 
+func addRecommendsBK(w *Word, tree bktree.BKTree) func()  {
+	return func() {
+		results := tree.Search(word(w.Value), constants.MaxDistance)
+		for _, result := range results {
+			// w.Recommends = append(w.Recommends, string(result.Entry))
+			fmt.Printf("\t%s (distance: %d)\n", result.Entry.(word), result.Distance)
+		}
+	}
+}
+
 // Contexts are dictionaries with the respective words.
 // have higher priority than the words of the language itself
 func Recommend(chain *Chain, lang string, contexts []string) {
 	words := chain.Words
 	wordsDict := helpers.GetDictionary(lang)
 	var steps []func()
+	var tree bktree.BKTree
+	for _, w := range wordsDict {
+		tree.Add(word(w))
+	}
 
 	for _, word := range words {
-		steps = append(steps, addRecommends(word, wordsDict))
+		steps = append(steps, addRecommendsBK(word, tree))
 	}
 
 	stages := []*Stage{
