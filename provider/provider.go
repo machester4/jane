@@ -2,7 +2,6 @@ package provider
 
 import (
 	"errors"
-	"fmt"
 	"github.com/machester4/jane/bktree"
 	"github.com/machester4/jane/helpers"
 	"github.com/patrickmn/go-cache"
@@ -30,13 +29,12 @@ func getWordsFromFile(name string) []string {
 	return strings.Split(string(words), "\n")
 }
 
-func (p *Handler) GetTree(provider string) *BKTree {
-	fmt.Println(provider)
+func (p *Handler) GetTree(provider string) BKTree {
 	b, found := p.storage.Get(provider)
 	if !found {
 		helpers.CheckError(ErrorNotFoundTree)
 	}
-	return b.(*BKTree)
+	return b.(BKTree)
 }
 
 func GetHandler() *Handler {
@@ -54,9 +52,9 @@ func CreateHandler(providers ...string) {
 
 		// Get all word from providers and create BK-TREES
 		for _, p := range providers {
-			b := bktree.New()
+			var b bktree.BKTree
 			for _, w := range getWordsFromFile(p) {
-				b.Add(w)
+				b.Add(bktree.Word(w))
 			}
 			provider.storage.Set(p, b, cache.NoExpiration)
 		}

@@ -1,10 +1,12 @@
 package chain
 
+import "github.com/machester4/jane/bktree"
+
 type field struct {
 	Start      int
 	Offset     int
 	Value      string
-	Recommends []string
+	Recommends []*bktree.Result
 }
 type Word = field
 type Punct = field
