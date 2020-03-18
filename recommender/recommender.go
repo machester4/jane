@@ -9,10 +9,16 @@ import (
 
 func addRecommendsFromDic(w *Word, tree bktree.BKTree) func()  {
 	return func() {
+		// Get results from bk-tree
 		results := tree.Search(bktree.Word(w.Value), constants.MaxDistanceInDic)
-		sort.Slice(results, func(i, j int) bool { return results[i].Distance < results[i].Distance })
+
+		// Sort results from smallest to longest distance
+		sort.Slice(results, func(i, j int) bool { return results[i].Distance < results[j].Distance })
+
+		// Add result to word recommends
 		for i, result := range results {
-			if i == constants.MaxResults {
+			// Skip if the result is equal to the word
+			if i == constants.MaxResults || result.Distance == 0 {
 				break
 			}
 			w.Recommends = append(w.Recommends, result)

@@ -2,6 +2,7 @@ package chain
 
 import (
 	"github.com/machester4/jane/helpers"
+	"strings"
 
 	"github.com/machester4/jane/constants"
 )
@@ -45,7 +46,7 @@ func (c *Chain) add(value string, offset int, category string) {
 	field := &field{
 		Start:  offset - len(value),
 		Offset: offset,
-		Value:  value,
+		Value:  strings.ToLower(value),
 	}
 	switch category {
 	case constants.FieldTypeLetter:

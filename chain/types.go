@@ -6,6 +6,7 @@ type field struct {
 	Start      int
 	Offset     int
 	Value      string
+	Forbidden  bool
 	Recommends []*bktree.Result
 }
 type Word = field
