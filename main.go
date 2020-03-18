@@ -29,7 +29,7 @@ func initCache() *cache.Cache {
 		var tree bktree.BKTree
 		wordsDict := helpers.GetDictionary("es-ES")
 		for _, w := range wordsDict {
-			tree.Add(recommender.BkWord(w))
+			tree.Add(chain.BkWord(w))
 		}
 		cach.Set("bk-tree", tree, cache.NoExpiration)
 	}

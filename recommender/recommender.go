@@ -1,43 +1,17 @@
 package recommender
 
 import (
-	"fmt"
 	"github.com/machester4/jane/bktree"
+	"github.com/machester4/jane/chain"
 	"github.com/machester4/jane/constants"
-
-	"github.com/agnivade/levenshtein"
 )
 
-type BkWord string
-func (x BkWord) Distance(e bktree.Entry) int {
-	a := string(x)
-	b := string(e.(BkWord))
-
-	return levenshtein.ComputeDistance(a, b)
-}
-
-func addRecommends(word *Word, dicWords []string) func() {
-	return func() {
-		for _, wd := range dicWords {
-			distance := levenshtein.ComputeDistance(word.Value, wd)
-			if wd == word.Value {
-				word.Recommends = []string{}
-				break
-			}
-			if distance < constants.MaxDistance {
-				// fmt.Printf("distance %d - %s\n", distance, wd)
-				word.Recommends = append(word.Recommends, wd)
-			}
-		}
-	}
-}
 
 func addRecommendsBK(w *Word, tree bktree.BKTree) func()  {
 	return func() {
-		results := tree.Search(BkWord(w.Value), constants.MaxDistance)
+		results := tree.Search(chain.BkWord(w.Value), constants.MaxDistance)
 		for _, result := range results {
-			// w.Recommends = append(w.Recommends, string(result.Entry))
-			fmt.Printf("\t%s (distance: %d)\n", result.Entry.(BkWord), result.Distance)
+			w.Recommends = append(w.Recommends, result.Entry.(chain.BkWord))
 		}
 	}
 }
