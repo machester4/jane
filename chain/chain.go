@@ -1,9 +1,9 @@
 package chain
 
 import (
-	"github.com/machester4/jane/helpers"
-
 	"github.com/machester4/jane/constants"
+	"github.com/machester4/jane/helpers"
+	"strings"
 )
 
 func incrementRepeater(repeater *int, current rune, last rune) {
@@ -45,7 +45,7 @@ func (c *Chain) add(value string, offset int, category string) {
 	field := &field{
 		Start:  offset - len(value),
 		Offset: offset,
-		Value:  value,
+		Value:  strings.ToLower(value),
 	}
 	switch category {
 	case constants.FieldTypeLetter:

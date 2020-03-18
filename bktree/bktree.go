@@ -28,13 +28,13 @@ func (b *BKTree) Add(entry Entry) {
 	b.root.addChild(entry)
 }
 
-func (b *BKTree) Search(needle Entry, tolerance int) []*Result {
+func (b *BKTree) Search(needle Entry, tolerance int, limit int) []*Result {
 	results := make([]*Result, 0)
 	if b.root == nil {
 		return results
 	}
 	candidates := []*BKNode{b.root}
-	for len(candidates) != 0 {
+	for len(candidates) != 0 && len(results) != limit {
 		c := candidates[len(candidates)-1]
 		candidates = candidates[:len(candidates)-1]
 		d := c.entry.Distance(needle)

@@ -1,22 +1,34 @@
 package recommender
 
 import (
+	"fmt"
 	"github.com/machester4/jane/bktree"
 	"github.com/machester4/jane/constants"
 	"github.com/machester4/jane/provider"
-	"sort"
 )
 
 func addRecommendsFromDic(w *Word, tree bktree.BKTree) func()  {
 	return func() {
-		results := tree.Search(bktree.Word(w.Value), constants.MaxDistanceInDic)
-		sort.Slice(results, func(i, j int) bool { return results[i].Distance < results[i].Distance })
-		for i, result := range results {
-			if i == constants.MaxResults {
+		var results []*bktree.Result
+		for i,rLen := 0, len(results); rLen < constants.MaxResults; i++ {
+			fmt.Println("vuelta")
+			// Search from smallest to longest distance to obtain the maximum number of results
+			tResults := tree.Search(bktree.Word(w.Value), i, constants.MaxResults - rLen)
+
+			// Skip if have result with distance 0
+			if i == 0 && len(tResults) > 0 {
 				break
 			}
-			w.Recommends = append(w.Recommends, result)
+			// Skip if the current distance is greater than required
+			if i > constants.MaxDistanceInDic {
+				break
+			}
+
+			// Add results
+			results = append(results, tResults...)
 		}
+		// Add recommends to word
+		w.Recommends = results
 	}
 }
 
