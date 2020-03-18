@@ -1,54 +1,57 @@
 package bktree
 
-func (n *node) addChild(e Entry) {
-	newnode := &node{entry: e}
-loop:
-	d := n.entry.Distance(e)
-	for _, c := range n.children {
-		if c.distance == d {
-			n = c.node
-			goto loop
-		}
-	}
-	n.children = append(n.children, struct {
-		distance int
-		node     *node
-	}{d, newnode})
-}
+import "github.com/agnivade/levenshtein"
 
-func (bk *BKTree) Add(entry Entry) {
-	if bk.root == nil {
-		bk.root = &node{
-			entry: entry,
-		}
+func (b *BKTree) Add(s string) {
+	if b.root == nil {
+		b.root = &BKNode{Str: s, Children: make(map[int]*BKNode)}
 		return
 	}
-	bk.root.addChild(entry)
+
+	current := b.root
+	for {
+		d := b.DistanceFunc(s, current.Str)
+		if target, ok := current.Children[d]; ok {
+			current = target
+		} else {
+			current.Children[d] = &BKNode{Str: s, Children: make(map[int]*BKNode)}
+			break
+		}
+	}
 }
 
-func (bk *BKTree) Search(needle Entry, tolerance int) []*Result {
-	results := make([]*Result, 0)
-	if bk.root == nil {
-		return results
+func (b *BKTree) Search(s string, radius int) []*BKNode {
+	var resultList []*BKNode
+	if b.root == nil {
+		return resultList
 	}
-	candidates := []*node{bk.root}
-	for len(candidates) != 0 {
-		c := candidates[len(candidates)-1]
-		candidates = candidates[:len(candidates)-1]
-		d := c.entry.Distance(needle)
-		if d <= tolerance {
-			results = append(results, &Result{
-				Distance: d,
-				Entry:    c.entry,
-			})
+
+	var candidates []*BKNode
+	candidates = append(candidates, b.root)
+	for len(candidates) > 0 {
+		candidate := candidates[0]
+		candidates = candidates[1:]
+
+		d := b.DistanceFunc(s, candidate.Str)
+		if d <= radius {
+			resultList = append(resultList, candidate)
 		}
 
-		low, high := d-tolerance, d+tolerance
-		for _, c := range c.children {
-			if low <= c.distance && c.distance <= high {
-				candidates = append(candidates, c.node)
+		low := d - radius
+		high := d + radius
+		for distance, node := range candidate.Children {
+			if distance >= low && distance <= high {
+				candidates = append(candidates, node)
 			}
 		}
 	}
-	return results
+
+	return resultList
+}
+
+func New() *BKTree {
+	return &BKTree{
+		root:         nil,
+		DistanceFunc: levenshtein.ComputeDistance,
+	}
 }

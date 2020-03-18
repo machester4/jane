@@ -1,22 +1,11 @@
 package bktree
 
-type node struct {
-	entry    Entry
-	children []struct {
-		distance int
-		node     *node
-	}
-}
-
-type Result struct {
-	Distance int
-	Entry    Entry
+type BKNode struct {
+	Str      string
+	Children map[int]*BKNode
 }
 
 type BKTree struct {
-	root *node
-}
-
-type Entry interface {
-	Distance(Entry) int
+	root         *BKNode
+	DistanceFunc func(string, string) int
 }

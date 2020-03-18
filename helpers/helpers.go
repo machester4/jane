@@ -2,14 +2,11 @@ package helpers
 
 import (
 	"github.com/machester4/jane/constants"
-	"io/ioutil"
-	"os"
-	"strings"
 	"unicode"
 )
 
 
-// Error Handler
+// Error Helper
 func CheckError(err error)  {
 	if err != nil {
 		panic(err)
@@ -49,16 +46,4 @@ func IsRepeatedCharacter(category string, repeater int) (isRepeated bool) {
 		isRepeated = repeater > constants.MaxRepeatSpace
 	}
 	return
-}
-
-
-// Panic Helpers
-func GetDictionary(lang string) []string {
-	path, err := os.Getwd()
-	CheckError(err)
-
-	words, err := ioutil.ReadFile(path + "/dict/" + lang + ".dic")
-	CheckError(err)
-
-	return strings.Split(string(words), "\n")
 }

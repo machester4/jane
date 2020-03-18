@@ -17,5 +17,6 @@ const MaxRepeatPunct = 0
 const MaxRepeatSpace = 0
 
 // Recommend
-const MaxDistance = 2
+const MaxDistanceInDic = 1
+const MaxDistanceInContext = 2
 const MaxResults = 3
