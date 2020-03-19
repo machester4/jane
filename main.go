@@ -13,8 +13,8 @@ import (
 
 type Body struct {
 	Text  string
-	Dict  string
-	Contexts []string
+	Lang  string
+	Context string
 }
 
 
@@ -29,7 +29,7 @@ func draft(w http.ResponseWriter, r *http.Request) {
 	// Marshal or convert recommend object to json and write to response
 	c := chain.New(b.Text)
 
-	recommender.Recommend(c, b.Dict)
+	recommender.Recommend(c, b.Lang, b.Context)
 	respJson, err := json.Marshal(c)
 	helpers.CheckError(err)
 
@@ -43,7 +43,7 @@ func draft(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// Initialize words provider handler
-	provider.CreateHandler("es-ES")
+	provider.CreateHandler("es-50", "chivito")
 
 	// Basic server ONLY for test
 	http.HandleFunc("/", draft)

@@ -7,10 +7,15 @@ import (
 	"sort"
 )
 
-func addRecommendsFromDic(w *Word, tree bktree.BKTree) func()  {
+func addRecommends(w *Word, tree bktree.BKTree, tolerance int) func()  {
 	return func() {
+		// Skip if have all recommends
+		if len(w.Recommends) == constants.MaxResults {
+			return
+		}
+
 		// Get results from bk-tree
-		results := tree.Search(bktree.Word(w.Value), constants.MaxDistanceInDic)
+		results := tree.Search(bktree.Word(w.Value), tolerance)
 
 		// Sort results from smallest to longest distance
 		sort.Slice(results, func(i, j int) bool { return results[i].Distance < results[j].Distance })
@@ -28,22 +33,25 @@ func addRecommendsFromDic(w *Word, tree bktree.BKTree) func()  {
 
 // Contexts are dictionaries with the respective words.
 // have higher priority than the words of the language itself
-func Recommend(chain *Chain, lang string) {
+func Recommend(chain *Chain, lang string, context string) {
 	// Words provider
 	provider := provider.GetHandler()
 
 	// Get BK-TREE from provider
-	tree := provider.GetTree(lang)
+	cTree := provider.GetTree(context)
+	dTree := provider.GetTree(lang)
 
 	// Words in chain
 	words := chain.Words
 
-	// TODO Create steps for 'Add words recommends from context' stage
-
-	// Create steps for 'Add words recommends from dictionary' stage
-	var steps []func()
+	var sContext  []func()
+	var sDict []func()
 	for _, word := range words {
-		steps = append(steps, addRecommendsFromDic(word, tree))
+		// Create steps for 'Add words recommends from context' stage
+		sContext = append(sContext, addRecommends(word, cTree, constants.MaxDistanceInContext))
+
+		// Create steps for 'Add words recommends from dictionary' stage
+		sDict = append(sDict, addRecommends(word, dTree, constants.MaxDistanceInDic))
 	}
 
 	// TODO Create steps for 'Remove forbidden words' stage (use bk-tree for remove forbidden words with distance 1)
@@ -52,11 +60,11 @@ func Recommend(chain *Chain, lang string) {
 	stages := []*Stage{
 		{
 			Name:  "Add words recommends from context",
-			Steps: nil,
+			Steps: sContext,
 		},
 		{
 			Name:  "Add words recommends from dictionary",
-			Steps: steps,
+			Steps: sDict,
 		},
 		{
 			Name:  "Remove forbidden words",
