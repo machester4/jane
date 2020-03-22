@@ -1,11 +1,29 @@
-package bktree
+package lib
 
 import "github.com/agnivade/levenshtein"
 
-func (n *BKNode) addChild(e Entry) {
-	newnode := &BKNode{entry: e}
+type bkword string
+
+type bkentry interface {
+	distance(bkentry) int
+}
+
+type bknode struct {
+	entry    bkentry
+	children []struct {
+		distance int
+		node     *bknode
+	}
+}
+
+type bktree struct {
+	root *bknode
+}
+
+func (n *bknode) addChild(e bkentry) {
+	newnode := &bknode{entry: e}
 loop:
-	d := n.entry.Distance(e)
+	d := n.entry.distance(e)
 	for _, c := range n.children {
 		if c.distance == d {
 			n = c.node
@@ -14,13 +32,13 @@ loop:
 	}
 	n.children = append(n.children, struct {
 		distance int
-		node     *BKNode
+		node     *bknode
 	}{d, newnode})
 }
 
-func (b *BKTree) Add(entry Entry) {
+func (b *bktree) add(entry bkentry) {
 	if b.root == nil {
-		b.root = &BKNode{
+		b.root = &bknode{
 			entry: entry,
 		}
 		return
@@ -28,16 +46,16 @@ func (b *BKTree) Add(entry Entry) {
 	b.root.addChild(entry)
 }
 
-func (b *BKTree) Search(needle Entry, tolerance int) []*Result {
+func (b *bktree) search(needle bkentry, tolerance int) []*Result {
 	results := make([]*Result, 0)
 	if b.root == nil {
 		return results
 	}
-	candidates := []*BKNode{b.root}
+	candidates := []*bknode{b.root}
 	for len(candidates) != 0 {
 		c := candidates[len(candidates)-1]
 		candidates = candidates[:len(candidates)-1]
-		d := c.entry.Distance(needle)
+		d := c.entry.distance(needle)
 		if d <= tolerance {
 			results = append(results, &Result{
 				Distance: d,
@@ -55,9 +73,9 @@ func (b *BKTree) Search(needle Entry, tolerance int) []*Result {
 	return results
 }
 
-func (x Word) Distance(e Entry) int {
+func (x bkword) distance(e bkentry) int {
 	a := string(x)
-	b := string(e.(Word))
+	b := string(e.(bkword))
 
 	return levenshtein.ComputeDistance(a, b)
 }
