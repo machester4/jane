@@ -8,17 +8,21 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
+// I+D
+// https://en.wikipedia.org/wiki/BK-tree
+// https://en.wikipedia.org/wiki/Edit_distance
+
 var once sync.Once
 
-func addRecommends(w *Field, tree bktree, tolerance int) func() {
-	return func() {
-		// Skip if have all recommends
-		if len(w.Recommends) == maxResults {
+func addRecommends(tree bktree, tolerance int) func(*field) {
+	return func(w *field) {
+		// Skip if the word equals a recommendation
+		if w.Same == true {
 			return
 		}
 
 		// Get results from bk-tree
-		results := tree.search(bkword(w.Value), tolerance)
+		results := tree.search(w.Value, tolerance)
 
 		// Sort results from smallest to longest distance
 		sort.Slice(results, func(i, j int) bool { return results[i].Distance < results[j].Distance })
@@ -26,7 +30,13 @@ func addRecommends(w *Field, tree bktree, tolerance int) func() {
 		// Add result to word recommends
 		for i, result := range results {
 			// Skip if the result is equal to the word
-			if i == maxResults || result.Distance == 0 {
+			if result.Distance == 0 {
+				w.Same = true
+				break
+			}
+
+			// Skip if we have already reached the maximum of results
+			if (i + len(w.Recommends)) == maxResults {
 				break
 			}
 			w.Recommends = append(w.Recommends, result)
@@ -34,53 +44,57 @@ func addRecommends(w *Field, tree bktree, tolerance int) func() {
 	}
 }
 
-// Contexts are dictionaries with the respective words.
+// Recommend - Contexts are dictionaries with the respective words.
 // have higher priority than the words of the language itself
-func Recommend(text string, lang string, context string) *Chain {
+func Recommend(text string, lang string, context string) (*RecommendResult, error) {
+	// Create result set
+	var rs RecommendResult
+
 	// Create chain
 	c := createChain(text)
 
 	// Words provider
-	provider := getProviderHandler()
-
-	// Get BK-TREE from provider
-	cTree := provider.getTree(context)
-	dTree := provider.getTree(lang)
-
-	var sContext []func()
-	var sDict []func()
-	for _, word := range c.Words {
-		// Create steps for 'Add words recommends from context' stage
-		sContext = append(sContext, addRecommends(word, cTree, maxDistanceInContext))
-
-		// Create steps for 'Add words recommends from dictionary' stage
-		sDict = append(sDict, addRecommends(word, dTree, maxDistanceInDic))
+	provider, err := getProviderHandler()
+	if err != nil {
+		return &rs, err
 	}
 
-	// TODO Create steps for 'Remove forbidden words' stage (use bk-tree for remove forbidden words with distance 1)
+	// Get bk-tree from provider
+	cTree, err := provider.getTree(context)
+	if err != nil {
+		return &rs, err
+	}
 
-	// Create stages for pipeline
+	dTree, err := provider.getTree(lang)
+	if err != nil {
+		return &rs, err
+	}
+
 	stages := []*stage{
 		{
-			name:  "Add words recommends from context",
-			steps: sContext,
+			name:   "Add words recommends from dictionary",
+			worker: addRecommends(dTree, maxDistanceInDic),
 		},
 		{
-			name:  "Add words recommends from dictionary",
-			steps: sDict,
-		},
-		{
-			name:  "Remove forbidden words",
-			steps: nil,
+			name:   "Add words recommends from context",
+			worker: addRecommends(cTree, maxDistanceInContext),
 		},
 	}
 
-	// Start pipeline async
-	pipeline := pipeline{stages: stages}
-	pipeline.start(false)
-	return c
+	pipeline := pipeline{stages: stages, fields: c.words}
+	pipeline.run()
+
+	// Fill result set
+	for _, w := range c.words {
+		if w.Recommends != nil && w.Same == false {
+			rs.Words = append(rs.Words, w)
+		}
+	}
+
+	return &rs, nil
 }
 
+// Initialize word provider
 func Initialize(providers ...string) {
 	// Create handler instance
 	once.Do(func() {
@@ -91,7 +105,7 @@ func Initialize(providers ...string) {
 		for _, p := range providers {
 			var b bktree
 			for _, w := range getWordsFromFile(p) {
-				b.add(bkword(w))
+				b.add(w)
 			}
 			provider.storage.Set(p, b, cache.NoExpiration)
 		}

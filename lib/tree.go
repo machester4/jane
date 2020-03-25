@@ -1,15 +1,13 @@
 package lib
 
-import "github.com/agnivade/levenshtein"
+import (
+	"github.com/agnivade/levenshtein"
+)
 
-type bkword string
-
-type bkentry interface {
-	distance(bkentry) int
-}
+type bkresult = RecommendItemSuggestion
 
 type bknode struct {
-	entry    bkentry
+	entry    string
 	children []struct {
 		distance int
 		node     *bknode
@@ -20,10 +18,10 @@ type bktree struct {
 	root *bknode
 }
 
-func (n *bknode) addChild(e bkentry) {
+func (n *bknode) addChild(e string) {
 	newnode := &bknode{entry: e}
 loop:
-	d := n.entry.distance(e)
+	d := distance(n.entry, e)
 	for _, c := range n.children {
 		if c.distance == d {
 			n = c.node
@@ -36,7 +34,8 @@ loop:
 	}{d, newnode})
 }
 
-func (b *bktree) add(entry bkentry) {
+// Add node to tree
+func (b *bktree) add(entry string) {
 	if b.root == nil {
 		b.root = &bknode{
 			entry: entry,
@@ -46,8 +45,9 @@ func (b *bktree) add(entry bkentry) {
 	b.root.addChild(entry)
 }
 
-func (b *bktree) search(needle bkentry, tolerance int) []*Result {
-	results := make([]*Result, 0)
+// search in tree - tolerance it represents edit distance
+func (b *bktree) search(needle string, tolerance int) []*bkresult {
+	results := make([]*bkresult, 0)
 	if b.root == nil {
 		return results
 	}
@@ -55,9 +55,9 @@ func (b *bktree) search(needle bkentry, tolerance int) []*Result {
 	for len(candidates) != 0 {
 		c := candidates[len(candidates)-1]
 		candidates = candidates[:len(candidates)-1]
-		d := c.entry.distance(needle)
+		d := distance(c.entry, needle)
 		if d <= tolerance {
-			results = append(results, &Result{
+			results = append(results, &bkresult{
 				Distance: d,
 				Entry:    c.entry,
 			})
@@ -73,9 +73,6 @@ func (b *bktree) search(needle bkentry, tolerance int) []*Result {
 	return results
 }
 
-func (x bkword) distance(e bkentry) int {
-	a := string(x)
-	b := string(e.(bkword))
-
+func distance(a string, b string) int {
 	return levenshtein.ComputeDistance(a, b)
 }

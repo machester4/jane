@@ -1,30 +1,23 @@
 package lib
 
-import (
-	"strings"
-)
+import "strings"
 
-type Field struct {
-	Start      int
-	Offset     int
-	Value      string
-	Forbidden  bool
-	Recommends []*Result
-}
+type field = RecommendResultItem
+type recommend = RecommendItemSuggestion
 
-type Article struct {
-	Start      int
-	Offset     int
-	Value      string
-	Noun       *Field
-	Recommends []string
+type article struct {
+	start      int
+	offset     int
+	value      string
+	noun       *field
+	recommends []*recommend
 }
 
 type chain struct {
-	Words       []*Field
-	Pucts       []*Field
-	Articles    []*Article
-	headArticle *Article // For set Noun (sustantivo luego del articulo)
+	words       []*field
+	pucts       []*field
+	articles    []*article
+	headArticle *article // For set Noun (sustantivo luego del articulo)
 }
 
 func incrementRepeater(repeater *int, current rune, last rune) {
@@ -35,35 +28,35 @@ func incrementRepeater(repeater *int, current rune, last rune) {
 	}
 }
 
-func (c *chain) addWord(f *Field) {
+func (c *chain) addWord(f *field) {
 	isArticle := isArticle(f.Value)
 	if isArticle {
 		c.addArticle(f)
 	} else {
 		if c.headArticle != nil {
-			c.headArticle.Noun = f
+			c.headArticle.noun = f
 			c.headArticle = nil
 		}
-		c.Words = append(c.Words, f)
+		c.words = append(c.words, f)
 	}
 }
 
-func (c *chain) addArticle(f *Field) {
-	art := Article{
-		Start:  f.Start,
-		Offset: f.Offset,
-		Value:  f.Value,
+func (c *chain) addArticle(f *field) {
+	art := article{
+		start:  f.Start,
+		offset: f.Offset,
+		value:  f.Value,
 	}
-	c.Articles = append(c.Articles, &art)
+	c.articles = append(c.articles, &art)
 	c.headArticle = &art
 }
 
-func (c *chain) addPunct(f *Field) {
-	c.Pucts = append(c.Pucts, f)
+func (c *chain) addPunct(f *field) {
+	c.pucts = append(c.pucts, f)
 }
 
 func (c *chain) add(value string, offset int, category string) {
-	field := &Field{
+	field := &field{
 		Start:  offset - len(value),
 		Offset: offset,
 		Value:  strings.ToLower(value),
@@ -77,7 +70,7 @@ func (c *chain) add(value string, offset int, category string) {
 }
 
 func createChain(text string) *chain {
-	var chain chain
+	var c chain
 	var repeater int
 	var last rune
 	var field string
@@ -91,11 +84,11 @@ func createChain(text string) *chain {
 		}
 		switch category {
 		case fieldTypeSpace:
-			chain.add(field, i-1, getCharacterCategory(last))
+			c.add(field, i, getCharacterCategory(last))
 			field = ""
 		case fieldTypePunct:
-			chain.add(string(r), i, category)
-			chain.add(field, i-1, getCharacterCategory(last))
+			c.add(string(r), i+1, category)
+			c.add(field, i, getCharacterCategory(last))
 			field = ""
 		default:
 			field += string(r)
@@ -105,8 +98,8 @@ func createChain(text string) *chain {
 
 	// Add last field
 	if field != "" {
-		chain.add(field, len(text), getCharacterCategory(last))
+		c.add(field, len(text), getCharacterCategory(last))
 	}
 
-	return &chain
+	return &c
 }

@@ -4,14 +4,14 @@ import (
 	"unicode"
 )
 
-// Error Helper
+// checkError - if error launch a panic
 func checkError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-// Chain Helpers
+// getCharacterCategory - return the category of a character
 func getCharacterCategory(r rune) (category string) {
 	switch {
 	case unicode.IsLetter(r):
@@ -24,6 +24,7 @@ func getCharacterCategory(r rune) (category string) {
 	return
 }
 
+// isArticle - return true if value is a valid article
 func isArticle(value string) (isArticle bool) {
 	for _, article := range articles {
 		if article == value {
@@ -34,6 +35,7 @@ func isArticle(value string) (isArticle bool) {
 	return
 }
 
+// isRepeatedCharacter - returns true if a category is repeating consecutively
 func isRepeatedCharacter(category string, repeater int) (isRepeated bool) {
 	switch category {
 	case fieldTypeLetter:

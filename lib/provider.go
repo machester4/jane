@@ -15,6 +15,7 @@ var (
 	errorProviderHandlerNotInitialized = errors.New("provider handler not initialized")
 )
 
+// handler is a words provider handler
 type handler struct {
 	storage *cache.Cache
 }
@@ -29,17 +30,19 @@ func getWordsFromFile(name string) []string {
 	return strings.Split(string(words), "\n")
 }
 
-func (p *handler) getTree(provider string) bktree {
+// getTree - return bk-tree from cache
+func (p *handler) getTree(provider string) (bktree, error) {
 	b, found := p.storage.Get(provider)
-	if !found {
-		checkError(errorNotFoundTree)
+	if found == false {
+		return bktree{}, errorNotFoundTree
 	}
-	return b.(bktree)
+	return b.(bktree), nil
 }
 
-func getProviderHandler() *handler {
+// getProviderHandler - return instance of provider handler
+func getProviderHandler() (*handler, error) {
 	if provider == nil {
-		checkError(errorProviderHandlerNotInitialized)
+		return provider, errorProviderHandlerNotInitialized
 	}
-	return provider
+	return provider, nil
 }

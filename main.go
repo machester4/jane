@@ -25,7 +25,10 @@ func draft(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	c := lib.Recommend(b.Text, b.Lang, b.Context)
+	c, err := lib.Recommend(b.Text, b.Lang, b.Context)
+	if err != nil {
+		panic(err)
+	}
 
 	respJSON, err := json.Marshal(c)
 	if err != nil {

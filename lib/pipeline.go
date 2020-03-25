@@ -1,63 +1,45 @@
 package lib
 
-import (
-	"fmt"
-	"sync"
-)
+type chmsg struct {
+	stginx int
+	data   *field
+}
 
 type stage struct {
-	name  string
-	steps []func()
-	lifo  bool // TODO: Implement
+	name   string
+	worker func(*field)
 }
 
 type pipeline struct {
-	wg     sync.WaitGroup
+	ch     chan chmsg
+	tlimit int
+	fields []*field
 	stages []*stage
 }
 
-func (s *stage) logDone(stgName string) {
-	fmt.Printf("Stage %q done all steps!\n", stgName)
+func (p *pipeline) runner(stginx int, f *field) {
+	p.stages[stginx].worker(f)
+	p.ch <- chmsg{stginx: stginx, data: f}
 }
 
-func (s *stage) logStepDone(sIndex int) {
-	fmt.Printf("[%q]: Step -> %d Done!\n", s.name, sIndex)
-}
-
-func (p *pipeline) runnerSync() {
-	for _, stage := range p.stages {
-		for i, step := range stage.steps {
-			step()
-			stage.logStepDone(i)
+func (p *pipeline) observer() {
+	for msg := range p.ch {
+		p.tlimit--
+		if msg.stginx != (len(p.stages) - 1) {
+			go p.runner(msg.stginx+1, msg.data)
 		}
-		stage.logDone(stage.name)
-	}
-}
-
-func (s *stage) wrapRoutine(wg *sync.WaitGroup, index int) {
-	defer wg.Done()
-	s.steps[index]()
-	s.logStepDone(index)
-}
-
-func (p *pipeline) runnerAsync() {
-	for _, stage := range p.stages {
-		// Wait current stage run all step in parallel
-		p.wg.Add(len(stage.steps))
-		for i := range stage.steps {
-			go stage.wrapRoutine(&p.wg, i)
+		if p.tlimit == 0 {
+			close(p.ch)
 		}
-		p.wg.Wait()
-		stage.logDone(stage.name)
 	}
 }
 
-// Stages are executed synchronously,
-// and steps are executed depending on the value of the sync variable
-func (p *pipeline) start(sync bool) {
-	if sync {
-		p.runnerSync()
-	} else {
-		p.runnerAsync()
+func (p *pipeline) run() {
+	p.ch = make(chan chmsg)
+	p.tlimit = len(p.fields) * len(p.stages)
+
+	for _, f := range p.fields {
+		go p.runner(0, f)
 	}
+	p.observer()
 }
