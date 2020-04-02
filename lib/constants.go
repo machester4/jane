@@ -27,7 +27,7 @@ const maxRepeatSpace = 0
 const maxDistanceInDic = 1
 
 // maxDistanceInContext - maximum distance tolerated in a context dictionary
-const maxDistanceInContext = 3
+const maxDistanceInContext = 2
 
 // maxResults - maximum recommendations per field
 const maxResults = 3

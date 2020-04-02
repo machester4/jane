@@ -39,6 +39,11 @@ func (p *handler) getTree(provider string) (bktree, error) {
 	return b.(bktree), nil
 }
 
+func (p *handler) getTrie(provider string) *Trie {
+	t, _ := p.storage.Get(provider)
+	return t.(*Trie)
+}
+
 // getProviderHandler - return instance of provider handler
 func getProviderHandler() (*handler, error) {
 	if provider == nil {

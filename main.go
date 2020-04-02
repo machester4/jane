@@ -45,7 +45,7 @@ func draft(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// Initialize words provider handler
-	lib.Initialize("es-50", "chivito")
+	lib.Initialize("es-big", "chivito")
 
 	// Basic server ONLY for test
 	http.HandleFunc("/", draft)

@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -11,15 +12,37 @@ import (
 // I+D
 // https://en.wikipedia.org/wiki/BK-tree
 // https://en.wikipedia.org/wiki/Edit_distance
+// https://blog.algolia.com/inside-the-algolia-engine-part-2-the-indexing-challenge-of-instant-search/
 
 var once sync.Once
 
-func addRecommends(tree bktree, tolerance int) func(*field) {
+// tree bktree, t *trie, tolerance int
+func addRecommends(tree bktree, t *Trie, tolerance int) func(*field) {
 	return func(w *field) {
+
 		// Skip if the word equals a recommendation
-		if w.Same == true {
+		if w.Same {
+			fmt.Println("es igual")
 			return
 		}
+
+		exact := t.HasKeysWithPrefix(w.Value)
+		if exact {
+			w.Same = exact
+			fmt.Println("es igual")
+			return
+		}
+
+		// var bkn bktree
+
+		// branch := t.PrefixSearch(w.Value)
+		/* for _, candidate := range branch {
+			w.Recommends = append(w.Recommends, &RecommendItemSuggestion{
+				Entry:    candidate,
+				Distance: 0,
+			})
+			// bkn.add(candidate)
+		} */
 
 		// Get results from bk-tree
 		results := tree.search(w.Value, tolerance)
@@ -60,24 +83,27 @@ func Recommend(text string, lang string, context string) (*RecommendResult, erro
 	}
 
 	// Get bk-tree from provider
-	cTree, err := provider.getTree(context)
+	cTree, err := provider.getTree(context + "bk")
 	if err != nil {
 		return &rs, err
 	}
 
-	dTree, err := provider.getTree(lang)
+	dTree, err := provider.getTree(lang + "bk")
 	if err != nil {
 		return &rs, err
 	}
+
+	cTrie := provider.getTrie(context + "rx")
+	dTrie := provider.getTrie(lang + "rx")
 
 	stages := []*stage{
 		{
 			name:   "Add words recommends from dictionary",
-			worker: addRecommends(dTree, maxDistanceInDic),
+			worker: addRecommends(dTree, dTrie, maxDistanceInDic),
 		},
 		{
 			name:   "Add words recommends from context",
-			worker: addRecommends(cTree, maxDistanceInContext),
+			worker: addRecommends(cTree, cTrie, maxDistanceInContext),
 		},
 	}
 
@@ -94,7 +120,7 @@ func Recommend(text string, lang string, context string) (*RecommendResult, erro
 	return &rs, nil
 }
 
-// Initialize word provider
+// Initialize word provider // Indexing
 func Initialize(providers ...string) {
 	// Create handler instance
 	once.Do(func() {
@@ -104,10 +130,13 @@ func Initialize(providers ...string) {
 		// Get all word from providers and create BK-TREES
 		for _, p := range providers {
 			var b bktree
+			t := NewTrie()
 			for _, w := range getWordsFromFile(p) {
 				b.add(w)
+				t.Add(w, nil)
 			}
-			provider.storage.Set(p, b, cache.NoExpiration)
+			provider.storage.Set(p+"rx", t, cache.NoExpiration)
+			provider.storage.Set(p+"bk", b, cache.NoExpiration)
 		}
 	})
 }
